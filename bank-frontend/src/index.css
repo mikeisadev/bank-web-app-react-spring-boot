@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+html, body, #root {
+    height: 100%;
+}
+
+.input-style {
+    @apply bg-white rounded-md p-[8px] text-black w-full;
+}
+
+.btn-primary {
+    @apply bg-white p-[8px] rounded-md text-black w-full mt-2;
+}
