@@ -1,11 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import "./App.css";
 
+const TRANSACTIONS_URL = "http://localhost:9090/transactions";
+
 /**
  * Questa funzione App si chiama COMPONENTE perché siamo in React
  * @returns
  */
 function App() {
+  const [incomeForm, setIncomeForm] = useState({ value: 0, transactionCategory: "", transactionType: "income" });
+  const [lossForm, setLossForm] = useState({ value: 0, transactionCategory: "", transactionType: "loss" });
+
   const [tutteLeEntrate, aggiungiTutteLeEntrate] = useState([]);
   const [entrate, aggiornaEntrate] = useState(0);
 
@@ -17,7 +22,7 @@ function App() {
       redirect: "follow"
     };
 
-    fetch("http://localhost:9090/entrate", requestOptions)
+    fetch(TRANSACTIONS_URL, requestOptions)
       .then((response) => response.text())
       .then((result) => {
         console.log("HO OTTENUTO I DATI DAL SERVER", JSON.parse(result))
@@ -43,10 +48,12 @@ function App() {
     event.preventDefault();
 
     const datiNuovaEntrata = {
-      valore: entrate
+      value: entrate,
+      transactionType: "entrata",
+      transactionCategory: "ciao"
     }
 
-    fetch("http://localhost:9090/entrate", {
+    fetch(TRANSACTIONS_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(datiNuovaEntrata)
@@ -74,8 +81,8 @@ function App() {
    * 
    * @param {*} event 
    */
-  function gestisciInput(event) {
-    aggiornaEntrate(event.target.value);
+  function handleInput(event, fieldType) {
+    console.log(event, fieldType);
   }
 
   /**
@@ -100,7 +107,20 @@ function App() {
             <h5 className="text-lg font-semibold">Entrate</h5>
 
             <form ref={referenzaFormEntrata} onSubmit={gestisciAggiuntaEntrata}>
-              <input type="number" className="input-style" onInput={gestisciInput} step="0.01" />
+              <div className="mb-[10px]">
+                <label className="mb-1 block">Importo (€)</label>
+                <input type="number" className="input-style" onInput={handleInput} step="0.01" />
+              </div>
+
+              <div className="mb-[10px]">
+                <label className="mb-1 block">Tipo movimento</label>
+                <select className="input-style" onChange={handleInput}>
+                  <option value="stipendio">Stipendio</option>
+                  <option value="bonifico">Bonifico</option>
+                  <option value="ritorno_investimenti">Ritorno investimenti</option>
+                </select>
+              </div>
+
               <button className="btn-primary">Aggiungi entrata</button>
             </form>
           </div>
