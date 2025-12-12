@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./App.css";
 
 /**
@@ -9,14 +9,28 @@ function App() {
   const [tutteLeEntrate, aggiungiTutteLeEntrate] = useState([]);
   const [entrate, aggiornaEntrate] = useState(0);
 
-  async function ottieniEntrate() {
-    const response = await fetch("http://localhost:9090/entrate");
-    const data = await response.json();
+  const referenzaFormEntrata = useRef(null);
 
-    console.log(data);
-    aggiungiTutteLeEntrate(data);
+  function ottieniEntrate() {
+    const requestOptions = {
+      method: "GET",
+      redirect: "follow"
+    };
+
+    fetch("http://localhost:9090/entrate", requestOptions)
+      .then((response) => response.text())
+      .then((result) => {
+        console.log("HO OTTENUTO I DATI DAL SERVER", JSON.parse(result))
+
+        aggiungiTutteLeEntrate( JSON.parse(result) )
+      })
+      .catch((error) => console.error(error));
   }
 
+  /**
+   * Questa funzione (useEffect) si avvia nel momento in cui 
+   * visito l'app (quindi al primo caricamento useEffect si inizializza)
+   */
   useEffect(() => {
     ottieniEntrate()
     console.log("CIAOOOOOOOO SONO IL PUNTO IN CUI SI AVVIA L'APP")
@@ -28,12 +42,39 @@ function App() {
   function gestisciAggiuntaEntrata(event) {
     event.preventDefault();
 
-    console.log("AGGIUNGI ENTRATA");
+    const datiNuovaEntrata = {
+      valore: entrate
+    }
+
+    fetch("http://localhost:9090/entrate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(datiNuovaEntrata)
+    })
+    .then(response => {
+      alert("Congratulazioni! Hai aggiunto un'entrata.")
+      ottieniEntrate();
+
+      /**
+       * Faccio il console log per vedere cosa mi restituisce
+       */
+      console.log(referenzaFormEntrata.current);
+
+      /**
+       * Resetta i valori del form
+       */
+      referenzaFormEntrata.current.reset();
+    })
+
+    console.log("Aggiunta nuova entrata: ", entrate);
   }
 
+  /**
+   * Gestistici input si avvia quando inserisco i numeri dentro l'input che usa questo metodo.
+   * 
+   * @param {*} event 
+   */
   function gestisciInput(event) {
-    console.log(event.target.value);
-
     aggiornaEntrate(event.target.value);
   }
 
@@ -58,8 +99,8 @@ function App() {
           <div className="bg-green-600 text-white p-4 rounded-lg">
             <h5 className="text-lg font-semibold">Entrate</h5>
 
-            <form onSubmit={gestisciAggiuntaEntrata}>
-              <input type="number" className="input-style" onInput={gestisciInput} />
+            <form ref={referenzaFormEntrata} onSubmit={gestisciAggiuntaEntrata}>
+              <input type="number" className="input-style" onInput={gestisciInput} step="0.01" />
               <button className="btn-primary">Aggiungi entrata</button>
             </form>
           </div>
@@ -75,13 +116,15 @@ function App() {
         <div className="w-full">
           <h4 className="text-center">Estratto conto</h4>
 
-          <div className="mt-[20px] mb-[20px]">
+          <div className="mt-[20px] mb-[20px] flex flex-col gap-[10px] overflow-y-scroll h-[400px]">
             {
-              tutteLeEntrate.map(boh => <p>{boh.valore}</p>)
+              tutteLeEntrate.map((entrata, index) => <div key={index} className="p-4 border border-2 rounded-md border-green-600 text-right">
+                <span>+ {entrata.valore} €</span>
+              </div>)
             }
           </div>
 
-          <p>Entrate totali: {entrate}€</p>
+          <p>Entrate totali: {tutteLeEntrate.reduce((numeroIniziale, entrata) => numeroIniziale + entrata.valore, 0)}€</p>
           <p>Uscite totali: </p>
         </div>
 
