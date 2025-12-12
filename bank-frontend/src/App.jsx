@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 
 /**
@@ -6,7 +6,21 @@ import "./App.css";
  * @returns
  */
 function App() {
+  const [tutteLeEntrate, aggiungiTutteLeEntrate] = useState([]);
   const [entrate, aggiornaEntrate] = useState(0);
+
+  async function ottieniEntrate() {
+    const response = await fetch("http://localhost:9090/entrate");
+    const data = await response.json();
+
+    console.log(data);
+    aggiungiTutteLeEntrate(data);
+  }
+
+  useEffect(() => {
+    ottieniEntrate()
+    console.log("CIAOOOOOOOO SONO IL PUNTO IN CUI SI AVVIA L'APP")
+  }, []);
 
   /**
    * Qui invece scriviamo codice Javascript
@@ -60,6 +74,12 @@ function App() {
 
         <div className="w-full">
           <h4 className="text-center">Estratto conto</h4>
+
+          <div className="mt-[20px] mb-[20px]">
+            {
+              tutteLeEntrate.map(boh => <p>{boh.valore}</p>)
+            }
+          </div>
 
           <p>Entrate totali: {entrate}€</p>
           <p>Uscite totali: </p>
