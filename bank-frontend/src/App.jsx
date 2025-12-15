@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { formatDate } from "./date";
 import "./App.css";
 
 const TRANSACTIONS_URL = "http://localhost:9090/transactions";
@@ -187,7 +188,7 @@ function App() {
               tutteLeEntrate.map((entrata, index) => <div key={index} className={`p-4 border border-2 rounded-md ${entrata.transactionType === 'entrata' ? 'border-green-600' : 'border-red-600'} text-right`}>
                 <div>{entrata.transactionType === 'entrata' ? '+' : '-'} {entrata.value} €</div>
                 <div>Tipo: {entrata.transactionCategory}</div>
-                <div>Data esecuzione: {new Date(entrata.creationDate).toLocaleDateString()}</div>
+                <div>Data esecuzione: {formatDate(entrata.creationDate)}</div>
               </div>)
             }
           </div>
