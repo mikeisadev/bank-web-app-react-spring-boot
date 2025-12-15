@@ -14,6 +14,12 @@ function App() {
     transactionType: 'entrata'
   });
 
+  const [uscitaForm, impostaUscitaForm] = useState({
+    value: 0,
+    transactionCategory: null,
+    transactionType: 'uscita'
+  });
+
   const [tutteLeEntrate, aggiungiTutteLeEntrate] = useState([]);
   const [entrate, aggiornaEntrate] = useState(0);
 
@@ -47,15 +53,38 @@ function App() {
   /**
    * Qui invece scriviamo codice Javascript
    */
-  function gestisciAggiuntaEntrata(event) {
+  function addMovement(event, movementType) {
+    /**
+     * event.preventDefault() evita che la pagina si ricarichi
+     */
     event.preventDefault();
 
-    console.log("Mappatura form entrata con gli stati di react", entrataForm);
+    /**
+     * Inizializzo una variabile payload per contenere il form di entrata o di uscita in base
+     * al valore del parametro movementType
+     * 
+     * payload = carico di dati da mandare al server
+     * 
+     * Il Payload è il body o i dati che mando al server
+     */
+    let payload;
+
+    if (movementType === 'entrata') {
+      console.log("Stai aggiungendo un'uscita", uscitaForm);
+
+      payload = entrataForm;
+    }
+
+    if (movementType === 'uscita') {
+      console.log("Stai aggiungendo un'entrata", entrataForm);
+
+      payload = uscitaForm;
+    }
 
     fetch(TRANSACTIONS_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(entrataForm)
+      body: JSON.stringify(payload)
     })
     .then(response => {
       alert("Congratulazioni! Hai aggiunto un'entrata.")
@@ -96,7 +125,7 @@ function App() {
           <div className="bg-green-600 text-white p-4 rounded-lg">
             <h5 className="text-lg font-semibold">Entrate</h5>
 
-            <form ref={referenzaFormEntrata} onSubmit={gestisciAggiuntaEntrata}>
+            <form ref={referenzaFormEntrata} onSubmit={(event) => addMovement(event, "entrata")}>
               <div className="mb-[10px]">
                 <label className="mb-1 block">Importo (€)</label>
                 <input type="number" className="input-style" step="0.01" onInput={(event) => {
@@ -124,19 +153,41 @@ function App() {
 
           <div className="bg-red-600 text-white p-4 rounded-lg">
             <h5 className="text-lg font-semibold">Uscite</h5>
-            
-            <input type="number" className="input-style"/>
-            <button className="btn-primary">Aggiungi uscita</button>
+
+            <form onSubmit={(event) => addMovement(event, "uscita")}>
+              <div className="mb-[10px]">
+                <label className="mb-1 block">Importo (€)</label>
+                <input type="number" className="input-style" step="0.01" onInput={(event) => {
+                  impostaUscitaForm({ ...uscitaForm, value: event.target.value })
+                }}/>
+              </div>
+
+              <div className="mb-[10px]">
+                <label className="mb-1 block">Tipo movimento</label>
+                <select className="input-style" onChange={(event) => {
+                  impostaUscitaForm({ ...uscitaForm, transactionCategory: event.target.value });
+                }}>
+                  <option value="">SELEZIONA OPZIONE</option>
+                  <option value="spesa">Spesa</option>
+                  <option value="bolletta_elettrica">Bolletta elettrica</option>
+                  <option value="benzina">Benzina</option>
+                </select>
+              </div>
+              
+              <button className="btn-primary">Aggiungi uscita</button>
+            </form>
           </div>
         </div>
 
         <div className="w-full">
-          <h4 className="text-center">Estratto conto</h4>
 
+          <h4 className="text-center">Estratto conto</h4>
           <div className="mt-[20px] mb-[20px] flex flex-col gap-[10px] overflow-y-scroll h-[400px]">
             {
-              tutteLeEntrate.map((entrata, index) => <div key={index} className="p-4 border border-2 rounded-md border-green-600 text-right">
-                <span>+ {entrata.valore} €</span>
+              tutteLeEntrate.map((entrata, index) => <div key={index} className={`p-4 border border-2 rounded-md ${entrata.transactionType === 'entrata' ? 'border-green-600' : 'border-red-600'} text-right`}>
+                <div>{entrata.transactionType === 'entrata' ? '+' : '-'} {entrata.value} €</div>
+                <div>Tipo: {entrata.transactionCategory}</div>
+                <div>Data esecuzione: {new Date(entrata.creationDate).toLocaleDateString()}</div>
               </div>)
             }
           </div>
