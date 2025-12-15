@@ -101,10 +101,18 @@ function App() {
        */
       console.log(referenzaFormEntrata.current);
 
+      console.log("risposta", response);
+
       /**
        * Resetta i valori del form
        */
       referenzaFormEntrata.current.reset();
+    })
+    .catch(error => {
+      console.log("errori", error);
+    })
+    .finally(response => {
+      console.log(response);
     })
 
     console.log("Aggiunta nuova entrata: ", entrate);
