@@ -26,7 +26,7 @@ function App() {
 
   const referenzaFormEntrata = useRef(null);
 
-  function ottieniEntrate() {
+  function getMovements() {
     const requestOptions = {
       method: "GET",
       redirect: "follow"
@@ -47,7 +47,7 @@ function App() {
    * visito l'app (quindi al primo caricamento useEffect si inizializza)
    */
   useEffect(() => {
-    ottieniEntrate()
+    getMovements()
     console.log("CIAOOOOOOOO SONO IL PUNTO IN CUI SI AVVIA L'APP")
   }, []);
 
@@ -89,7 +89,12 @@ function App() {
     })
     .then(response => {
       alert("Congratulazioni! Hai aggiunto un'entrata.")
-      ottieniEntrate();
+
+      /**
+       * Dopo aver aggiunto un movimento, ricarica tutti i movimenti disponibili per 
+       * visualizzare i dati aggiornati
+       */
+      getMovements();
 
       /**
        * Faccio il console log per vedere cosa mi restituisce
@@ -103,6 +108,43 @@ function App() {
     })
 
     console.log("Aggiunta nuova entrata: ", entrate);
+  }
+
+  /**
+   * Calcola le entrate
+   */
+  function calculateIncome(allMovements) {
+    let sum = 0;
+
+    allMovements.map(movement => {
+      if (movement.transactionType === 'entrata') {
+        sum += Number(movement.value);
+      }
+    })
+
+    return sum;
+  }
+
+  /**
+   * Calcola le uscite
+   */
+  function calculateLoss(allMovements) {
+    let sum = 0;
+
+    allMovements.map(movement => {
+      if (movement.transactionType === 'uscita') {
+        sum -= Number(movement.value);
+      }
+    })
+
+    return sum;
+  }
+
+  /**
+   * Calcola il bilancio totale
+   */
+  function calculateNetIncome(allMovements) {
+    return calculateIncome(allMovements) + calculateLoss(allMovements);
   }
 
   /**
@@ -186,15 +228,21 @@ function App() {
           <div className="mt-[20px] mb-[20px] flex flex-col gap-[10px] overflow-y-scroll h-[400px]">
             {
               tutteLeEntrate.map((entrata, index) => <div key={index} className={`p-4 border border-2 rounded-md ${entrata.transactionType === 'entrata' ? 'border-green-600' : 'border-red-600'} text-right`}>
-                <div>{entrata.transactionType === 'entrata' ? '+' : '-'} {entrata.value} €</div>
+                <div>
+                  <span className={`${(entrata.transactionType === 'entrata') ? 'text-green-600' : 'text-red-600'} font-bold text-[22px]`}>
+                    {entrata.transactionType === 'entrata' ? '+' : '-'} {entrata.value} €
+                  </span>
+                </div>
                 <div>Tipo: {entrata.transactionCategory}</div>
                 <div>Data esecuzione: {formatDate(entrata.creationDate)}</div>
               </div>)
             }
           </div>
 
-          <p>Entrate totali: {tutteLeEntrate.reduce((numeroIniziale, entrata) => numeroIniziale + entrata.valore, 0)}€</p>
-          <p>Uscite totali: </p>
+          <p>Entrate totali: {calculateIncome(tutteLeEntrate)}€</p>
+          <p>Uscite totali: {calculateLoss(tutteLeEntrate)}€</p>
+
+          <p>Bilancio: {calculateNetIncome(tutteLeEntrate)}€</p>
         </div>
 
       </div>
