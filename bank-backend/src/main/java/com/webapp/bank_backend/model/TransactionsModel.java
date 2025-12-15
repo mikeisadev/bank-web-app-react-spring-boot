@@ -26,6 +26,15 @@ public class TransactionsModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Prima avevamo le tabelle del database:
+     * - entrate
+     * - uscite
+     * 
+     * Abbiamo deciso di ridurre tutto a una tabella "movimenti" che in inglese chiamo "transactions".
+     * 
+     * Per distinguere quale record di questa nuova tabella è una entrata o una uscita ho creato la colonna "transaction_type"
+     */
     @Column(name="transaction_type")
     private String transactionType;
 

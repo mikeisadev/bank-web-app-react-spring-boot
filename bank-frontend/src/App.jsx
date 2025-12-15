@@ -8,8 +8,11 @@ const TRANSACTIONS_URL = "http://localhost:9090/transactions";
  * @returns
  */
 function App() {
-  const [incomeForm, setIncomeForm] = useState({ value: 0, transactionCategory: "", transactionType: "income" });
-  const [lossForm, setLossForm] = useState({ value: 0, transactionCategory: "", transactionType: "loss" });
+  const [entrataForm, impostaEntrataForm] = useState({
+    value: 0,
+    transactionCategory: null,
+    transactionType: 'entrata'
+  });
 
   const [tutteLeEntrate, aggiungiTutteLeEntrate] = useState([]);
   const [entrate, aggiornaEntrate] = useState(0);
@@ -47,16 +50,12 @@ function App() {
   function gestisciAggiuntaEntrata(event) {
     event.preventDefault();
 
-    const datiNuovaEntrata = {
-      value: entrate,
-      transactionType: "entrata",
-      transactionCategory: "ciao"
-    }
+    console.log("Mappatura form entrata con gli stati di react", entrataForm);
 
     fetch(TRANSACTIONS_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(datiNuovaEntrata)
+      body: JSON.stringify(entrataForm)
     })
     .then(response => {
       alert("Congratulazioni! Hai aggiunto un'entrata.")
@@ -74,15 +73,6 @@ function App() {
     })
 
     console.log("Aggiunta nuova entrata: ", entrate);
-  }
-
-  /**
-   * Gestistici input si avvia quando inserisco i numeri dentro l'input che usa questo metodo.
-   * 
-   * @param {*} event 
-   */
-  function handleInput(event, fieldType) {
-    console.log(event, fieldType);
   }
 
   /**
@@ -109,12 +99,19 @@ function App() {
             <form ref={referenzaFormEntrata} onSubmit={gestisciAggiuntaEntrata}>
               <div className="mb-[10px]">
                 <label className="mb-1 block">Importo (€)</label>
-                <input type="number" className="input-style" onInput={handleInput} step="0.01" />
+                <input type="number" className="input-style" step="0.01" onInput={(event) => {
+
+                  impostaEntrataForm({ ...entrataForm, value: event.target.value });
+
+                }}/>
               </div>
 
               <div className="mb-[10px]">
                 <label className="mb-1 block">Tipo movimento</label>
-                <select className="input-style" onChange={handleInput}>
+                <select className="input-style" onChange={event => {
+                  impostaEntrataForm({ ...entrataForm, transactionCategory: event.target.value });
+                }}>
+                  <option value="">SELEZIONA OPZIONE</option>
                   <option value="stipendio">Stipendio</option>
                   <option value="bonifico">Bonifico</option>
                   <option value="ritorno_investimenti">Ritorno investimenti</option>
