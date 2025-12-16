@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { formatDate } from "./date";
+import axios from "axios";
 import "./App.css";
 
 import { FormPayload } from "./FormPayload";
@@ -18,22 +19,16 @@ function App() {
   const [tutteLeEntrate, aggiungiTutteLeEntrate] = useState([]);
   const [entrate, aggiornaEntrate] = useState(0);
 
+  const [errors, setErrors] = useState();
+
   const referenzaFormEntrata = useRef(null);
 
+  /**
+   * Questa è la funzione che mi carica tutti i movimenti
+   */
   function getMovements() {
-    const requestOptions = {
-      method: "GET",
-      redirect: "follow"
-    };
-
-    fetch(TRANSACTIONS_URL, requestOptions)
-      .then((response) => response.text())
-      .then((result) => {
-        console.log("HO OTTENUTO I DATI DAL SERVER", JSON.parse(result))
-
-        aggiungiTutteLeEntrate( JSON.parse(result) )
-      })
-      .catch((error) => console.error(error));
+    axios.get(TRANSACTIONS_URL)
+      .then(response => aggiungiTutteLeEntrate(response.data));
   }
 
   /**
@@ -83,61 +78,78 @@ function App() {
      * 
      * Metto il return, perché voglio una guard clause e bloccare l'esecuzione del codice se manca un valore
      */
-    if (payload.value === 0) {
-      alert("Attenzione! Non hai inserito il valore del movimento!");
+    // if (payload.value === 0) {
+    //   alert("Attenzione! Non hai inserito il valore del movimento!");
 
-      return;
-    }
+    //   return;
+    // }
 
-    if (payload.transactionCategory === null) {
-      alert("Attento! Devi indicare il tipo di movimento!");
+    // if (payload.transactionCategory === null) {
+    //   alert("Attento! Devi indicare il tipo di movimento!");
 
-      return;
-    }
+    //   return;
+    // }
 
-    fetch(TRANSACTIONS_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    })
-    .then(response => {
-      alert("Congratulazioni! Hai aggiunto un'entrata.")
+    axios.post(TRANSACTIONS_URL, payload)
+      .then(response => {
+        console.log("Movimento aggiunto")
+      })
+      .catch(error => {
+        const errorCode = error.response.data;
 
-      /**
-       * Dopo aver aggiunto un movimento, ricarica tutti i movimenti disponibili per 
-       * visualizzare i dati aggiornati
-       */
-      getMovements();
+        console.log(errorCode)
 
-      /**
-       * Faccio il console log per vedere cosa mi restituisce
-       */
-      console.log(referenzaFormEntrata.current);
+        setErrors(errorCode);
+      })
 
-      console.log("risposta", response);
+    // fetch(TRANSACTIONS_URL, {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify(payload)
+    // })
+    // .then(response => {
+    //   if (response.json().status !== response.ok) {
+    //     throw response.json()
+    //   }
+    // })
+    // .then(response => {
+    //   alert("Congratulazioni! Hai aggiunto un'entrata.")
 
-      /**
-       * Resetta i valori del form
-       */
-      referenzaFormEntrata.current.reset();
+    //   /**
+    //    * Dopo aver aggiunto un movimento, ricarica tutti i movimenti disponibili per 
+    //    * visualizzare i dati aggiornati
+    //    */
+    //   getMovements();
 
-      /**
-       * Attenzione! Devo ripulire lo stato di react
-       */
-      impostaEntrataForm({
-        value: 0,
-        transactionCategory: null,
-        transactionType: 'entrata',
-      });
-    })
-    .catch(error => {
-      console.log("errori", error);
-    })
-    .finally(response => {
-      console.log(response);
-    })
+    //   /**
+    //    * Faccio il console log per vedere cosa mi restituisce
+    //    */
+    //   console.log(referenzaFormEntrata.current);
 
-    console.log("Aggiunta nuova entrata: ", entrate);
+    //   console.log("risposta", response);
+
+    //   /**
+    //    * Resetta i valori del form
+    //    */
+    //   referenzaFormEntrata.current.reset();
+
+    //   /**
+    //    * Attenzione! Devo ripulire lo stato di react
+    //    */
+    //   impostaEntrataForm({
+    //     value: 0,
+    //     transactionCategory: null,
+    //     transactionType: 'entrata',
+    //   });
+    // })
+    // .catch(error => {
+    //   console.log("errori", error);
+    // })
+    // .finally(response => {
+    //   console.log(response);
+    // })
+
+    // console.log("Aggiunta nuova entrata: ", entrate);
   }
 
   /**
@@ -206,6 +218,8 @@ function App() {
                   impostaEntrataForm({ ...entrataForm, value: Number(event.target.value) });
 
                 }}/>
+
+                {errors?.value_error && <p>{errors.value_error}</p>}
               </div>
 
               <div className="mb-[10px]">
