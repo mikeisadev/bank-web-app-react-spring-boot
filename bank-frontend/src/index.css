@@ -11,3 +11,8 @@ html, body, #root {
 .btn-primary {
     @apply bg-white p-[8px] rounded-md text-black w-full mt-2;
 }
+
+/* Errore di validazione */
+.val-error {
+    @apply bg-white p-[6px] rounded-md text-red-600 font-semibold mt-[8px];
+}

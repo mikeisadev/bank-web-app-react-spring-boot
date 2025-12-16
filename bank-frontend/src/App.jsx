@@ -12,15 +12,19 @@ const TRANSACTIONS_URL = "http://localhost:9090/transactions";
  * @returns
  */
 function App() {
-  const [entrataForm, impostaEntrataForm] = useState(FormPayload.entrataForm);
+  const [tutteLeEntrate, aggiungiTutteLeEntrate] = useState([]);
 
+  /**
+   * Stati react per i due form: entrata e uscita
+   */
+  const [entrataForm, impostaEntrataForm] = useState(FormPayload.entrataForm);
   const [uscitaForm, impostaUscitaForm] = useState(FormPayload.uscitaForm);
 
-  const [tutteLeEntrate, aggiungiTutteLeEntrate] = useState([]);
-  const [entrate, aggiornaEntrate] = useState(0);
-
+  /**
+   * Stato react per gli errori
+   */
   const [errors, setErrors] = useState();
-
+  
   const referenzaFormEntrata = useRef(null);
 
   /**
@@ -71,96 +75,51 @@ function App() {
       payload = uscitaForm;
     }
 
-    /**
-     * Eseguiamo la validazione dei campi del form.
-     * 
-     * Non voglio che l'utente invii dati incompleti o mancanti
-     * 
-     * Metto il return, perché voglio una guard clause e bloccare l'esecuzione del codice se manca un valore
-     */
-    // if (payload.value === 0) {
-    //   alert("Attenzione! Non hai inserito il valore del movimento!");
-
-    //   return;
-    // }
-
-    // if (payload.transactionCategory === null) {
-    //   alert("Attento! Devi indicare il tipo di movimento!");
-
-    //   return;
-    // }
-
     axios.post(TRANSACTIONS_URL, payload)
       .then(response => {
-        console.log("Movimento aggiunto")
+        console.log("Movimento aggiunto");
+
+        referenzaFormEntrata.current.reset(); // Pulisco il form
+        impostaEntrataForm(FormPayload.entrataForm); // Rimetto la memoria di react (lo state) a come era prima
+        setErrors(); // pulisco la memoria degli errori, perché se sono qui tutto è stato processato per bene
+
+        getMovements();
+
+        alert(response.data.message);
       })
-      .catch(error => {
-        const errorCode = error.response.data;
+      .catch(err => {
+        console.log(err.response.data);
 
-        console.log(errorCode)
-
-        setErrors(errorCode);
+        setErrors(err.response.data);
       })
-
-    // fetch(TRANSACTIONS_URL, {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify(payload)
-    // })
-    // .then(response => {
-    //   if (response.json().status !== response.ok) {
-    //     throw response.json()
-    //   }
-    // })
-    // .then(response => {
-    //   alert("Congratulazioni! Hai aggiunto un'entrata.")
-
-    //   /**
-    //    * Dopo aver aggiunto un movimento, ricarica tutti i movimenti disponibili per 
-    //    * visualizzare i dati aggiornati
-    //    */
-    //   getMovements();
-
-    //   /**
-    //    * Faccio il console log per vedere cosa mi restituisce
-    //    */
-    //   console.log(referenzaFormEntrata.current);
-
-    //   console.log("risposta", response);
-
-    //   /**
-    //    * Resetta i valori del form
-    //    */
-    //   referenzaFormEntrata.current.reset();
-
-    //   /**
-    //    * Attenzione! Devo ripulire lo stato di react
-    //    */
-    //   impostaEntrataForm({
-    //     value: 0,
-    //     transactionCategory: null,
-    //     transactionType: 'entrata',
-    //   });
-    // })
-    // .catch(error => {
-    //   console.log("errori", error);
-    // })
-    // .finally(response => {
-    //   console.log(response);
-    // })
-
-    // console.log("Aggiunta nuova entrata: ", entrate);
   }
 
   /**
-   * Calcola le entrate
+   * Creo una funzione per cacolare il tipo di somma (calculateSumType è in inglese e significa quello che ho scritto nella frase)
+   * 
+   * allMovements = ci metto tutti i movimenti
+   * calculationType = scelgo tra income (entrate), loss (uscite) o net (patrimonio netto)
    */
-  function calculateIncome(allMovements) {
+  function calculateSumType(allMovements, calculationType) {
     let sum = 0;
 
     allMovements.map(movement => {
-      if (movement.transactionType === 'entrata') {
+      if (movement.transactionType === 'entrata' && calculationType === "income") {
         sum += Number(movement.value);
+      }
+
+      if (movement.transactionType === 'uscita' && calculationType === "loss") {
+        sum -= Number(movement.value)
+      }
+
+      if (calculationType === "net") {
+        if (movement.transactionType === 'entrata') {
+          sum += Number(movement.value);
+        } 
+        
+        if (movement.transactionType === 'uscita') {
+          sum -= Number(movement.value)
+        }
       }
     })
 
@@ -170,24 +129,24 @@ function App() {
   /**
    * Calcola le uscite
    */
-  function calculateLoss(allMovements) {
-    let sum = 0;
+  // function calculateLoss(allMovements) {
+  //   let sum = 0;
 
-    allMovements.map(movement => {
-      if (movement.transactionType === 'uscita') {
-        sum -= Number(movement.value);
-      }
-    })
+  //   allMovements.map(movement => {
+  //     if (movement.transactionType === 'uscita') {
+  //       sum -= Number(movement.value);
+  //     }
+  //   })
 
-    return sum;
-  }
+  //   return sum;
+  // }
 
   /**
    * Calcola il bilancio totale
    */
-  function calculateNetIncome(allMovements) {
-    return calculateIncome(allMovements) + calculateLoss(allMovements);
-  }
+  // function calculateNetIncome(allMovements) {
+  //   return calculateIncome(allMovements) + calculateLoss(allMovements);
+  // }
 
   /**
    * Qui scriviamo HTML (che in React si chiama JSX)
@@ -218,8 +177,7 @@ function App() {
                   impostaEntrataForm({ ...entrataForm, value: Number(event.target.value) });
 
                 }}/>
-
-                {errors?.value_error && <p>{errors.value_error}</p>}
+                { errors?.value_error && <p className="val-error">{errors.value_error}</p> }
               </div>
 
               <div className="mb-[10px]">
@@ -232,6 +190,7 @@ function App() {
                   <option value="bonifico">Bonifico</option>
                   <option value="ritorno_investimenti">Ritorno investimenti</option>
                 </select>
+                { errors?.transaction_category_error && <p className="val-error">{errors.transaction_category_error}</p> }
               </div>
 
               <button className="btn-primary">Aggiungi entrata</button>
@@ -283,10 +242,10 @@ function App() {
             }
           </div>
 
-          <p>Entrate totali: {calculateIncome(tutteLeEntrate)}€</p>
-          <p>Uscite totali: {calculateLoss(tutteLeEntrate)}€</p>
+          <p>Entrate totali: {calculateSumType(tutteLeEntrate, "income")}€</p>
+          <p>Uscite totali: {calculateSumType(tutteLeEntrate, "loss")}€</p>
 
-          <p>Bilancio: {calculateNetIncome(tutteLeEntrate)}€</p>
+          <p>Bilancio: {calculateSumType(tutteLeEntrate, "net")}€</p>
         </div>
 
       </div>
