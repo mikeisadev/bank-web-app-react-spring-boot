@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { formatDate } from "./date";
 import "./App.css";
 
+import { FormPayload } from "./FormPayload";
+
 const TRANSACTIONS_URL = "http://localhost:9090/transactions";
 
 /**
@@ -9,17 +11,9 @@ const TRANSACTIONS_URL = "http://localhost:9090/transactions";
  * @returns
  */
 function App() {
-  const [entrataForm, impostaEntrataForm] = useState({
-    value: 0,
-    transactionCategory: null,
-    transactionType: 'entrata'
-  });
+  const [entrataForm, impostaEntrataForm] = useState(FormPayload.entrataForm);
 
-  const [uscitaForm, impostaUscitaForm] = useState({
-    value: 0,
-    transactionCategory: null,
-    transactionType: 'uscita'
-  });
+  const [uscitaForm, impostaUscitaForm] = useState(FormPayload.uscitaForm);
 
   const [tutteLeEntrate, aggiungiTutteLeEntrate] = useState([]);
   const [entrate, aggiornaEntrate] = useState(0);
@@ -71,15 +65,34 @@ function App() {
     let payload;
 
     if (movementType === 'entrata') {
-      console.log("Stai aggiungendo un'uscita", uscitaForm);
+      console.log("Stai aggiungendo un'entrata", entrataForm);
 
       payload = entrataForm;
     }
 
     if (movementType === 'uscita') {
-      console.log("Stai aggiungendo un'entrata", entrataForm);
+      console.log("Stai aggiungendo un'uscita", uscitaForm);
 
       payload = uscitaForm;
+    }
+
+    /**
+     * Eseguiamo la validazione dei campi del form.
+     * 
+     * Non voglio che l'utente invii dati incompleti o mancanti
+     * 
+     * Metto il return, perché voglio una guard clause e bloccare l'esecuzione del codice se manca un valore
+     */
+    if (payload.value === 0) {
+      alert("Attenzione! Non hai inserito il valore del movimento!");
+
+      return;
+    }
+
+    if (payload.transactionCategory === null) {
+      alert("Attento! Devi indicare il tipo di movimento!");
+
+      return;
     }
 
     fetch(TRANSACTIONS_URL, {
@@ -107,6 +120,15 @@ function App() {
        * Resetta i valori del form
        */
       referenzaFormEntrata.current.reset();
+
+      /**
+       * Attenzione! Devo ripulire lo stato di react
+       */
+      impostaEntrataForm({
+        value: 0,
+        transactionCategory: null,
+        transactionType: 'entrata',
+      });
     })
     .catch(error => {
       console.log("errori", error);
@@ -181,7 +203,7 @@ function App() {
                 <label className="mb-1 block">Importo (€)</label>
                 <input type="number" className="input-style" step="0.01" onInput={(event) => {
 
-                  impostaEntrataForm({ ...entrataForm, value: event.target.value });
+                  impostaEntrataForm({ ...entrataForm, value: Number(event.target.value) });
 
                 }}/>
               </div>

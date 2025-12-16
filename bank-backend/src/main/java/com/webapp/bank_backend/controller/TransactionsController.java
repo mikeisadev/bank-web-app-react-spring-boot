@@ -34,21 +34,17 @@ public class TransactionsController {
     }
 
     @PostMapping("/transactions")
-    public ResponseEntity addSingleMovement(@RequestBody TransactionsModel transaction) {
-        Map<String, String> errors = new HashMap<>();
-        
+    public ResponseEntity addSingleMovement(@RequestBody TransactionsModel transaction) {  
         if (transaction.getValue() == 0) {
-            errors.put("value_error", "Non hai inserito il valore! Inseriscine uno.");
-        }
-
-        if (transaction.getTransactionCategory() == null) {
-           errors.put("transaction_category_error", "Non hai inserito la categoria del tuo movimento! Seleziona il tipo di movimento");
-        }
-
-        if (errors.size() > 0) {
             return ResponseEntity
                     .status(HttpStatus.UNPROCESSABLE_CONTENT)
-                    .body(errors);
+                    .body("Non hai inserito il valore!");
+        }  
+
+        if (transaction.getTransactionCategory() == null) {
+            return ResponseEntity
+                    .status(HttpStatus.UNPROCESSABLE_CONTENT)
+                    .body("Non hai inserito il tipo di transazione!");
         }
 
         transactionsRepository.save(transaction);
