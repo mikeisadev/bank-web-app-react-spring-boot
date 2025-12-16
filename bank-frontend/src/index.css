@@ -8,6 +8,14 @@ html, body, #root {
     @apply bg-white rounded-md p-[8px] text-black w-full;
 }
 
+.text-input {
+    @apply bg-zinc-100/50 rounded-md p-[8px] border w-full;
+}
+
+.btn-colored {
+    @apply bg-blue-500 p-[8px] rounded-md w-full text-white font-medium;
+}
+
 .btn-primary {
     @apply bg-white p-[8px] rounded-md text-black w-full mt-2;
 }
