@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.webapp.bank_backend.dto.LoginRequest;
 import com.webapp.bank_backend.model.UserModel;
 import com.webapp.bank_backend.repository.UserRepository;
 
@@ -30,6 +31,20 @@ public class AuthController {
      */
     @Autowired
     PasswordEncoder passwordEncoder;
+
+    @PostMapping("/login") 
+    public String handleUserLogin(@RequestBody LoginRequest loginRequest) {
+        // 1. Prendo username e password
+        String username = loginRequest.getUsername();
+        String password = loginRequest.getPassword();
+
+        // 2. Verificare che lo username esiste nel database
+        if (!userRepository.existsUsername(username)) {
+            return "NON ESISTE QUESTO USERNAME";
+        }
+
+        return "Ti stai provando a loggare";
+    }
 
     @PostMapping("/register")
     public void handleUserRegistration(@RequestBody UserModel user) {

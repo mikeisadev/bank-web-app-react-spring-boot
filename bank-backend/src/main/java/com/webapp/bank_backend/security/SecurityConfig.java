@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password4j.Argon2Password4jPasswordEncoder;
@@ -18,6 +19,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import com.webapp.bank_backend.repository.UserRepository;
 
 /**
  * Qui dentro vado a configurare Spring Security.
@@ -37,6 +40,12 @@ public class SecurityConfig {
      * I bean non sono altro che CONTENITORI di configurazione che hanno effetto
      * su tutto il mio backend spring boot.
      */
+
+    private final UserRepository userRepository;
+
+    public SecurityConfig(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     /**
      * Qui configuro la "security filter chain" (o catena di sicurezza) per
@@ -81,8 +90,25 @@ public class SecurityConfig {
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // return new BCryptPasswordEncoder();
-        return new Argon2Password4jPasswordEncoder();
+        return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Qui gestisco tutto il flusso di autenticazione.
+     */
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+    
+    }
+
+    @Bean 
+    public UserDetailsService userDetailsService() {
+
+    }
+
+    @Bean
+    public AuthenticationManager AuthenticationManager() {
+
     }
 
 }
