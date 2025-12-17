@@ -17,8 +17,8 @@ public interface UserRepository extends JpaRepository<UserModel, Long> {
 
     Optional<UserModel> findByTaxCode(String taxCode);
 
-    boolean existsUsername(String username);
+    boolean existsByUsername(String username);
 
-    boolean existsEmail(String email);
+    boolean existsByEmail(String email);
 
 }

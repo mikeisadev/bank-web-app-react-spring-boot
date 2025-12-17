@@ -1,6 +1,12 @@
 package com.webapp.bank_backend.controller;
 
+import java.util.HashMap;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -11,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webapp.bank_backend.dto.LoginRequest;
 import com.webapp.bank_backend.model.UserModel;
 import com.webapp.bank_backend.repository.UserRepository;
+import com.webapp.bank_backend.security.JwtService;
 
 /**
  * Questo controller gestirà le chiamate dal FRONTEND:
@@ -32,18 +39,47 @@ public class AuthController {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    /**
+     * Riprendo dalla configurazione del bean AuthenticationManager
+     */
+    @Autowired
+    AuthenticationManager authenticationManager;
+
+    /**
+     * Ricordiamoci di importare (fare autowired) di JwtService
+     */
+    @Autowired
+    JwtService jwtService;
+
     @PostMapping("/login") 
-    public String handleUserLogin(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<Object> handleUserLogin(@RequestBody LoginRequest loginRequest) {
         // 1. Prendo username e password
         String username = loginRequest.getUsername();
         String password = loginRequest.getPassword();
 
         // 2. Verificare che lo username esiste nel database
-        if (!userRepository.existsUsername(username)) {
-            return "NON ESISTE QUESTO USERNAME";
+        if (!userRepository.existsByUsername(username)) {
+            return ResponseEntity
+                        .status(HttpStatus.UNPROCESSABLE_CONTENT)
+                        .body(new HashMap<>() {{
+                            put("login_error", "Lo username inserito non esiste");
+                        }});
         }
 
-        return "Ti stai provando a loggare";
+        // 3. Password coincide con quella presente nel database
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(username, password)
+        );
+
+        // 4. Generare token JWT
+        String jwtToken = jwtService.generateToken(username);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new HashMap<>() {{
+                    put("message", "Login avvenuto con successo");
+                    put("authentication_token", jwtToken);
+                }});
     }
 
     @PostMapping("/register")
