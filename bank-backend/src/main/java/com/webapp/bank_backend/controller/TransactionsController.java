@@ -31,7 +31,7 @@ import org.springframework.http.ResponseEntity;
  */
 
 @RestController
-@CrossOrigin(origins = {"http://localhost:5173"})
+// @CrossOrigin(origins = {"http://localhost:5173"})
 public class TransactionsController {
 
     @Autowired

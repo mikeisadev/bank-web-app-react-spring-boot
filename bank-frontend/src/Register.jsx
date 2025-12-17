@@ -4,10 +4,10 @@ import axios from 'axios';
 import { useNavigate } from 'react-router';
 
 /**
- * Componente react per gestire la regis
+ * Componente react per gestire la registrazione utente
  */
 function Register() {
-    const navigate = useNavigate(); // useNavigate mi serve per reindirizzare gli utenti
+    const navigate = useNavigate(); // useNavigate mi serve per reindirizzare gli utenti da una pagina a un'altra
 
     /**
      * "memoria" react per contenere i valori dei miei campi
