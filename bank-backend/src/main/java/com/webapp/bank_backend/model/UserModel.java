@@ -1,10 +1,27 @@
 package com.webapp.bank_backend.model;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import jakarta.persistence.*;
 
+/**
+ * NOTA IMPORTANTE PER SPRING SECURITY.
+ * 
+ * Spring Security, se lo installi nel tuo progetto Spring Boot, deve prendere
+ * il controllo della entity/tabella del database che rapprenta gli utenti.
+ * 
+ * Quindi UserModel deve implementare UserDetails, un'interfaccia di Spring Security.
+ * 
+ * Inoltre, il model deve implementare tutti i metodi di User Details
+ */
 @Entity
 @Table(name = "users")
-public class UserModel {
+public class UserModel implements UserDetails {
 
     /**
      * Queste sono tutte le mie colonne del database
@@ -31,6 +48,14 @@ public class UserModel {
     @Column(name="password", nullable = false)
     private String password;
 
+    /**
+     * Aggiungo la colonna del ruolo dell'utente.
+     * 
+     * Può essere o "ADMIN" o "USER"
+     */
+    @Column(name="role", nullable = false)
+    private String role = "USER";
+
     // Creo il costruttore vuoto
     public UserModel() {}
 
@@ -49,6 +74,16 @@ public class UserModel {
         this.taxCode = taxCode;
         this.password = password;
     }
+
+    /**
+     * Gestione dei ruoli (TASSATIVAMENTE RICHIESTO DA SPRING SECURITY, ALTRIMENTI IL MIO BACKEND NON FUNZIONA)
+     */
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
+
+    }    
 
     /**
      * Setter & getters
@@ -107,6 +142,17 @@ public class UserModel {
 
     public void setPassword(String password) {
         this.password = password;
-    }    
+    }
+
+    /**
+     * Aggiungo i setter e i getter della colonna "role"
+     */
+    public String getRole() {
+        return this.role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
 
 }

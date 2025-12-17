@@ -4,10 +4,17 @@ import java.util.Arrays;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationManager;
+
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,6 +48,9 @@ public class SecurityConfig {
      * su tutto il mio backend spring boot.
      */
 
+    /**
+     * Importo come dipendenza la user repository.
+     */
     private final UserRepository userRepository;
 
     public SecurityConfig(UserRepository userRepository) {
@@ -55,12 +65,16 @@ public class SecurityConfig {
      * @return
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+        HttpSecurity http,
+        AuthenticationProvider authenticationProvider
+    ) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authenticationProvider(authenticationProvider);
 
         return http.build();
     }
@@ -97,18 +111,26 @@ public class SecurityConfig {
      * Qui gestisco tutto il flusso di autenticazione.
      */
     @Bean
-    public AuthenticationProvider authenticationProvider() {
-    
+    public AuthenticationProvider authenticationProvider(
+        UserDetailsService userDetailsService,
+        PasswordEncoder passwordEncoder
+    ) {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
+
+        authProvider.setPasswordEncoder(passwordEncoder);
+
+        return authProvider;
     }
 
     @Bean 
     public UserDetailsService userDetailsService() {
-
+        return email -> userRepository.findByEmail(email)
+                            .orElseThrow(() -> new RuntimeException("Utente non trovato"));
     }
 
     @Bean
-    public AuthenticationManager AuthenticationManager() {
-
+    public AuthenticationManager AuthenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
 }
