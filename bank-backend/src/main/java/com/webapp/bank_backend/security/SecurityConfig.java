@@ -39,7 +39,8 @@ public class SecurityConfig {
      */
 
     /**
-     * Questa parte mi disabilita i CORS.
+     * Qui configuro la "security filter chain" (o catena di sicurezza) per
+     * evitare che spring security mi blocca tutta l'applicazione web. 
      * 
      * @param http
      * @return
@@ -55,11 +56,9 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
+    /**
+     * Configurazione dei CORS (quindi consento a DOMINI o INDIRIZZI esterni di usare il mio backend spring boot)
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -75,6 +74,15 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
+    }
+
+    /**
+     * La mia configurazione per l'hashing delle password
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        // return new BCryptPasswordEncoder();
+        return new Argon2Password4jPasswordEncoder();
     }
 
 }

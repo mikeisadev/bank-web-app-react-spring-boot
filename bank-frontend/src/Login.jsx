@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 
 /**
  * Componente login per il frontend
@@ -21,6 +22,10 @@ function Login() {
 
                     <button className="btn-colored">Accedi ora</button>
                 </form>
+
+                <div className="text-center mt-[8px]">
+                    <Link to="/registrati">Non sei registrato? Registrati qui!</Link>
+                </div>
             </div>
         </div>
     )

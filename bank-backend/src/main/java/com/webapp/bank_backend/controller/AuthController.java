@@ -24,8 +24,12 @@ public class AuthController {
     @Autowired
     UserRepository userRepository;
 
-    // @Autowired
-    // PasswordEncoder passwordEncoder;
+    /**
+     * ATTENTO: Posso usare questo PasswordEncoder perché ho definito un Bean
+     * dentro SecurityConfig.java
+     */
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
     public void handleUserRegistration(@RequestBody UserModel user) {
@@ -43,7 +47,7 @@ public class AuthController {
         /**
          * ATTENZIONE: Qui devo fare l'hashing della PASSWORD
          */
-        newUser.setPassword(user.getPassword());
+        newUser.setPassword( passwordEncoder.encode( user.getPassword() ) );
 
         // Salvo l'utente
         userRepository.save(newUser);

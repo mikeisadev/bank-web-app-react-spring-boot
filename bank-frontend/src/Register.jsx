@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 
 /**
  * Componente react per gestire la registrazione utente
@@ -83,6 +83,10 @@ function Register() {
 
                     <button className="btn-colored">Registrati ora</button>
                 </form>
+
+                <div className="text-center mt-[8px]">
+                    <Link to="/login">Hai già un account? Accedi!</Link>
+                </div>
             </div>
         </div>
     )
