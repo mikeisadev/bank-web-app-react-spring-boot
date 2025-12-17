@@ -1,15 +1,19 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import axios from "axios";
 
 /**
  * Componente login per il frontend
  */
 function Login() {
+    const navigate = useNavigate();
+
     const [loginForm, setLoginForm] = useState({
         username: null,
         password: null
     });
+
+    const [errors, setErrors] = useState();
 
     function handleLogin(event) {
         event.preventDefault();
@@ -19,9 +23,26 @@ function Login() {
         axios.post("http://localhost:9090/login", loginForm)
             .then(response => {
                 console.log("Ti sei loggato")
+
+                console.log(response.data);
+
+                /**
+                 * Dopo il login ottengo il token di autenticazione JWT.
+                 * 
+                 * Questo token lo salvo nel localStorage, ovvero la memoria del mio browser
+                 */
+                localStorage.setItem('authentication_token', response.data.authentication_token);
+
+                /**
+                 * Reindirizzo l'utente nell'area di amministrazione
+                 */
+                navigate("/admin", { replace: true });
+
             })
             .catch(error => {
                 console.log(error.response);
+
+                setErrors(error.response.data);
             })
     }
 
@@ -29,6 +50,9 @@ function Login() {
         <div className="flex items-center justify-center bg-slate-200 h-full">
             <div className="bg-white w-[380px] p-4 rounded-md shadow-md">
                 <h4 className="text-center text-3xl font-semibold mb-[20px]">Accedi</h4>
+
+                { errors?.login_error && <p className="error-msg">{errors.login_error}</p> }
+
                 <form onSubmit={handleLogin}>
                     <div className="mb-[10px]">
                         <label className="mb-1 block">Username</label>
