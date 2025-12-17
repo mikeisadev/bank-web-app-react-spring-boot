@@ -1,4 +1,7 @@
 
+/**
+ * Componente react per gestire la regis
+ */
 function Register() {
 
     return (

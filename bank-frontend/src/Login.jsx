@@ -1,4 +1,7 @@
 
+/**
+ * Componente login per il frontend
+ */
 function Login() {
 
     return (
@@ -23,4 +26,7 @@ function Login() {
     )
 }
 
+/**
+ * Esporto il componente Login
+ */
 export default Login;
